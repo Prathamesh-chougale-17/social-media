@@ -1,5 +1,11 @@
 import { HydrateClient, trpc } from "@/trpc/server";
 import FeedScroll from "@/components/reel/feed-scroll";
+import { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Shorts - Social Media",
+  description: "Watch short videos from creators around the world",
+};
 
 export default async function ReelPage() {
   // Prefetch initial videos for instant hydration
@@ -15,10 +21,10 @@ export default async function ReelPage() {
   }
 
   return (
-    <div className="min-h-screen bg-black text-white">
+    <main className="min-h-screen bg-black text-white overflow-hidden">
       <HydrateClient>
         <FeedScroll />
       </HydrateClient>
-    </div>
+    </main>
   );
 }

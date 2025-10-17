@@ -120,3 +120,48 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Instagram Shorts-style scrolling */
+.snap-y {
+  scroll-snap-type: y mandatory;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE and Edge */
+}
+
+.snap-y::-webkit-scrollbar {
+  display: none; /* Chrome, Safari and Opera */
+}
+
+.snap-start {
+  scroll-snap-align: start;
+}
+
+.snap-always {
+  scroll-snap-stop: always;
+}
+
+/* Smooth animations for video controls */
+@keyframes pulse-like {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.2);
+  }
+}
+
+.animate-pulse-like {
+  animation: pulse-like 0.5s ease-in-out;
+}
+
+/* Better backdrop blur support */
+@supports (backdrop-filter: blur(10px)) or (-webkit-backdrop-filter: blur(10px)) {
+  .backdrop-blur-sm {
+    -webkit-backdrop-filter: blur(4px);
+  }
+  .backdrop-blur-md {
+    -webkit-backdrop-filter: blur(12px);
+  }
+}
+

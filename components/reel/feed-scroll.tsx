@@ -1,8 +1,10 @@
 "use client";
 
 import { trpc } from "@/trpc/client";
-import { useEffect, useRef, useCallback } from "react";
+import { useEffect, useRef, useCallback, useState } from "react";
 import { useInView } from "react-intersection-observer";
+import { InstagramShortsVideo } from "./instagram-shorts-video";
+import { KeyboardShortcutsHelper } from "./keyboard-shortcuts-helper";
 
 type Video = {
   id: string;
@@ -10,11 +12,11 @@ type Video = {
   duration: number;
   videoUrls: { hd?: string; large?: string; medium?: string; small?: string } | any;
   thumbnailUrl?: string;
+  user?: {
+    name?: string;
+    avatar?: string;
+  };
 };
-
-function chooseSrc(v: Video) {
-  return v.videoUrls?.hd ?? v.videoUrls?.large ?? v.videoUrls?.medium ?? v.videoUrls?.small ?? null;
-}
 
 export default function FeedScroll() {
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage } =
@@ -24,6 +26,7 @@ export default function FeedScroll() {
     );
 
   const videos = (data?.pages.flatMap((p) => p.items) ?? []) as Video[];
+  const [activeIndex, setActiveIndex] = useState(0);
 
   // sentinel for infinite loading
   const [sentinelRef, sentinelInView] = useInView({ rootMargin: "400px" });
@@ -34,58 +37,81 @@ export default function FeedScroll() {
     }
   }, [sentinelInView, hasNextPage, isFetchingNextPage, fetchNextPage]);
 
-  // Keep a ref map of video elements to control playback
+  // Keep a ref map of video elements and section refs
   const videosRef = useRef<Map<string, HTMLVideoElement | null>>(new Map());
+  const sectionsRef = useRef<Map<number, HTMLElement | null>>(new Map());
 
-  // Pause all except the in-view element
-  const onInViewChange = useCallback((id: string, inView: boolean) => {
-    const el = videosRef.current.get(id);
-    if (!el) return;
-    if (inView) {
-      el.muted = true;
-      el.play().catch(() => {});
-    } else {
-      el.pause();
-    }
-  }, []);
+  // Auto-scroll to next video when current video ends
+  const handleVideoEnd = useCallback(
+    (currentIndex: number) => {
+      const nextIndex = currentIndex + 1;
+      if (nextIndex < videos.length) {
+        const nextSection = sectionsRef.current.get(nextIndex);
+        if (nextSection) {
+          nextSection.scrollIntoView({ behavior: "smooth", block: "start" });
+          setActiveIndex(nextIndex);
+        }
+      }
+    },
+    [videos.length]
+  );
+
+  // Track which video is currently active based on scroll position
+  useEffect(() => {
+    const observers = videos.map((video, index) => {
+      const section = sectionsRef.current.get(index);
+      if (!section) return null;
+
+      const observer = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting && entry.intersectionRatio >= 0.5) {
+              setActiveIndex(index);
+            }
+          });
+        },
+        { threshold: 0.5 }
+      );
+
+      observer.observe(section);
+      return observer;
+    });
+
+    return () => {
+      observers.forEach((observer) => observer?.disconnect());
+    };
+  }, [videos]);
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen snap-y snap-mandatory overflow-y-scroll scroll-smooth">
       <div className="flex flex-col">
-        {videos.map((v) => {
-          const src = chooseSrc(v);
-          return (
-            <section key={v.id} className="h-screen w-full relative bg-black">
-              {/* Use a wrapper to keep layout stable */}
-              <div className="absolute inset-0">
-                {src ? (
-                  <ItemVideo
-                    id={v.id}
-                    src={src}
-                    refMap={videosRef}
-                    onInViewChange={onInViewChange}
-                    poster={v.thumbnailUrl}
-                    title={v.title}
-                  />
-                ) : (
-                  // If no src, just show the poster image full-bleed
-                  <img
-                    src={v.thumbnailUrl ?? undefined}
-                    alt={v.title ?? ""}
-                    className="w-full h-full object-cover"
-                  />
-                )}
-              </div>
-            </section>
-          );
-        })}
+        {videos.map((video, index) => (
+          <section
+            key={video.id}
+            ref={(el) => {
+              sectionsRef.current.set(index, el);
+            }}
+            className="h-screen w-full relative bg-black snap-start snap-always"
+          >
+            <InstagramShortsVideo
+              video={video}
+              isActive={activeIndex === index}
+              onVideoEnd={() => handleVideoEnd(index)}
+              videoRef={videosRef}
+            />
+          </section>
+        ))}
 
         {/* sentinel */}
-        <div ref={sentinelRef} className="h-24" />
+        <div ref={sentinelRef} className="h-24 bg-black" />
       </div>
+      
+      {/* Keyboard shortcuts helper */}
+      <KeyboardShortcutsHelper />
     </div>
   );
 }
+
 
 type ItemVideoProps = {
   id: string;
@@ -104,9 +130,67 @@ function ItemVideo({ id, src, poster, title, refMap, onInViewChange }: ItemVideo
     onInViewChange(id, inView);
   }, [id, inView, onInViewChange]);
 
+  // Local UI state for user-initiated pause & muted toggle
+  const [userPaused, setUserPaused] = useState(false);
+  const [muted, setMuted] = useState(true);
+
+  // Keep a ref to the element for local control
+  let localRef: HTMLVideoElement | null = null;
+
+  const setRef = (el: HTMLVideoElement | null) => {
+    localRef = el;
+    // Mirror into parent map for centralized control
+    refMap.current.set(id, el);
+    return undefined;
+  };
+
+  // When inView changes, play/pause according to visibility and user preference
+  // (don't auto-play if user explicitly paused)
+  // Note: onInViewChange in parent will also toggle playback; this keeps local toggles in sync.
+  useEffect(() => {
+    const el = refMap.current.get(id);
+    if (!el) return;
+    el.muted = muted;
+    if (inView && !userPaused) {
+      void el.play().catch(() => {});
+    } else {
+      el.pause();
+    }
+  }, [inView, userPaused, muted, id, refMap]);
+
+  const togglePlay = () => {
+    const el = refMap.current.get(id);
+    if (!el) return;
+    if (el.paused) {
+      void el.play().catch(() => {});
+      setUserPaused(false);
+    } else {
+      el.pause();
+      setUserPaused(true);
+    }
+  };
+
+  const toggleMute = () => {
+    const next = !muted;
+    setMuted(next);
+    const el = refMap.current.get(id);
+    if (el) el.muted = next;
+  };
+
+  const handleEnded = (e: React.SyntheticEvent<HTMLVideoElement>) => {
+    const el = e.currentTarget;
+    // replay to create continuous reel effect
+    try {
+      el.currentTime = 0;
+      void el.play();
+    } catch {
+      // ignore play errors
+    }
+  };
+
   // Render poster image when not sufficiently visible; mount video only when inView
   return (
-    <div ref={ref} className="h-full w-full">
+    <div ref={ref} className="h-full w-full relative">
       {!inView ? (
         // Poster image covers entire block and preserves layout
         <img
@@ -116,21 +200,40 @@ function ItemVideo({ id, src, poster, title, refMap, onInViewChange }: ItemVideo
         />
       ) : (
         // Mount the video only when the item is >50% in view
-        <video
-          src={src || undefined}
-          poster={poster}
-          playsInline
-          muted
-          controls={false}
-          className="w-full h-full object-cover"
-          aria-label={title}
-          ref={(el) => {
-            refMap.current.set(id, el);
-            return undefined;
-          }}
-          preload="metadata"
-          autoPlay
-        />
+        <>
+          <video
+            src={src || undefined}
+            poster={poster}
+            playsInline
+            muted={muted}
+            controls={false}
+            loop={false}
+            className="w-full h-full object-cover"
+            aria-label={title}
+            ref={setRef}
+            preload="metadata"
+            autoPlay
+            onEnded={handleEnded}
+          />
+
+          {/* Play/Pause overlay */}
+          <button
+            aria-label={userPaused ? "Play video" : "Pause video"}
+            onClick={togglePlay}
+            className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-black/50 text-white rounded-full p-3"
+          >
+            {userPaused ? "▶" : "⏸"}
+          </button>
+
+          {/* Mute toggle */}
+          <button
+            aria-label={muted ? "Unmute" : "Mute"}
+            onClick={toggleMute}
+            className="absolute right-4 bottom-24 bg-black/50 text-white rounded-full p-2"
+          >
+            {muted ? "🔇" : "🔊"}
+          </button>
+        </>
       )}
     </div>
   );

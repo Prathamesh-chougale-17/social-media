@@ -22,7 +22,8 @@ export const interactionsRouter = router({
     .input(z.object({ videoId: z.string(), content: z.string().min(1).max(2000) }))
     .mutation(async ({ input, ctx }) => {
       const userId = ctx.userId!;
-      const comment = await createComment(input.videoId, userId, input.content);
+      const authorName = ctx.userName;
+      const comment = await createComment(input.videoId, userId, input.content, authorName);
       return comment;
     }),
 

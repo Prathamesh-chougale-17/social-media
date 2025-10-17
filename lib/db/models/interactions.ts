@@ -6,6 +6,7 @@ export const CommentSchema = z.object({
   videoId: z.string(),
   userId: z.string(),
   content: z.string().min(1).max(2000),
+  authorName: z.string().min(1).optional(),
   createdAt: z.date().optional(),
 });
 

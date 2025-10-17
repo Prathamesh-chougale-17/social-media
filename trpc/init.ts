@@ -18,6 +18,7 @@ import { getSessionCookie } from "better-auth/cookies";
  */
 export interface Context {
   userId?: string; // User ID from auth session (if authenticated)
+  userName?: string; // Display name from auth session (if available)
   // Add more context fields as needed (e.g., session, headers)
 }
 
@@ -53,7 +54,12 @@ export async function createTRPCContext(opts?: { req?: Request } ) : Promise<Con
     };
 
     const userId = getUserId(session);
-    return { userId };
+    // Try to extract a human-friendly name from the session if available
+    const userName =
+      (typeof session === "object" && (session?.user?.name ?? session?.name)) ||
+      undefined;
+
+    return { userId, userName };
   } catch (err) {
     return {};
   }

@@ -1,31 +1,39 @@
 "use client";
 import React from "react";
 import { trpc } from "@/trpc/shared";
+import { useSession } from "@/lib/auth-client";
 
 export function LikeButton({ videoId }: { videoId: string }) {
   const utils = trpc.useContext();
   const { data: likes } = trpc.interactions.likesCount.useQuery({ videoId });
-  const { mutate: like } = trpc.interactions.like.useMutation({
+  const { data: session } = useSession();
+  const userId = session?.user?.id;
+
+  const likeMutation = trpc.interactions.like.useMutation({
     onSuccess() {
       utils.interactions.likesCount.invalidate({ videoId });
-      utils.interactions.hasLiked.invalidate({ videoId });
+      utils.interactions.hasLiked.invalidate({ videoId, userId });
     },
   });
 
-  const { mutate: unlike } = trpc.interactions.unlike.useMutation({
+  const unlikeMutation = trpc.interactions.unlike.useMutation({
     onSuccess() {
       utils.interactions.likesCount.invalidate({ videoId });
-      utils.interactions.hasLiked.invalidate({ videoId });
+      utils.interactions.hasLiked.invalidate({ videoId, userId });
     },
   });
 
-  const { data: hasLiked } = trpc.interactions.hasLiked.useQuery({ videoId, userId: undefined });
+  const { data: hasLiked } = trpc.interactions.hasLiked.useQuery({ videoId, userId }, { enabled: !!userId });
 
   const toggle = () => {
+    if (!userId) {
+      // Optionally open sign-in modal; for now, just return
+      return;
+    }
     if (hasLiked?.liked) {
-      unlike({ videoId });
+      unlikeMutation.mutate({ videoId });
     } else {
-      like({ videoId });
+      likeMutation.mutate({ videoId });
     }
   };
 

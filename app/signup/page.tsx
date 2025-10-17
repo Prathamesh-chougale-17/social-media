@@ -13,8 +13,9 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useSignUp, useSocialSignIn } from "@/lib/hooks/use-auth-mutations";
-import { signUpSchema } from "@/lib/validations/auth";
-import { useForm } from "@tanstack/react-form";
+import { signUpSchema, SignUpFormData } from "@/lib/validations/auth";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
@@ -23,27 +24,23 @@ export default function SignUpPage() {
   const signUpMutation = useSignUp();
   const socialSignIn = useSocialSignIn();
 
-  const form = useForm({
+  const form = useForm<SignUpFormData>({
+    resolver: zodResolver(signUpSchema),
     defaultValues: {
       name: "",
       email: "",
       password: "",
       confirmPassword: "",
     },
-    onSubmit: async ({ value }) => {
-      // Validate with Zod before submitting
-      const result = signUpSchema.safeParse(value);
-      if (!result.success) {
-        return;
-      }
-
-      try {
-        await signUpMutation.mutateAsync(value);
-      } catch {
-        // Error is handled by mutation
-      }
-    },
   });
+
+  const onSubmit = async (data: SignUpFormData) => {
+    try {
+      await signUpMutation.mutateAsync(data);
+    } catch (e) {
+      // handled by mutation
+    }
+  };
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4">
@@ -89,171 +86,46 @@ export default function SignUpPage() {
           </div>
 
           {!signUpMutation.isSuccess && (
-            <form
-              onSubmit={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                form.handleSubmit();
-              }}
-              className="space-y-4"
-            >
-              <form.Field
-                name="name"
-                validators={{
-                  onChange: ({ value }) => {
-                    const result = signUpSchema.shape.name.safeParse(value);
-                    if (!result.success) {
-                      return result.error.issues[0]?.message;
-                    }
-                    return undefined;
-                  },
-                }}
-              >
-                {(field) => (
-                  <div className="space-y-2">
-                    <Label htmlFor="name">Full Name</Label>
-                    <Input
-                      id="name"
-                      type="text"
-                      placeholder="John Doe"
-                      value={field.state.value}
-                      onChange={(e) => field.handleChange(e.target.value)}
-                      onBlur={field.handleBlur}
-                      disabled={signUpMutation.isPending}
-                    />
-                    {field.state.meta.errors.length > 0 && (
-                      <p className="text-sm text-red-600">
-                        {field.state.meta.errors[0]}
-                      </p>
-                    )}
-                  </div>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="name">Full Name</Label>
+                <Input id="name" {...form.register("name")} disabled={signUpMutation.status === "pending"} />
+                {form.formState.errors.name && (
+                  <p className="text-sm text-red-600">{String(form.formState.errors.name?.message)}</p>
                 )}
-              </form.Field>
+              </div>
 
-              <form.Field
-                name="email"
-                validators={{
-                  onChange: ({ value }) => {
-                    const result = signUpSchema.shape.email.safeParse(value);
-                    if (!result.success) {
-                      return result.error.issues[0]?.message;
-                    }
-                    return undefined;
-                  },
-                }}
-              >
-                {(field) => (
-                  <div className="space-y-2">
-                    <Label htmlFor="email">Email</Label>
-                    <Input
-                      id="email"
-                      type="email"
-                      placeholder="john@example.com"
-                      value={field.state.value}
-                      onChange={(e) => field.handleChange(e.target.value)}
-                      onBlur={field.handleBlur}
-                      disabled={signUpMutation.isPending}
-                    />
-                    {field.state.meta.errors.length > 0 && (
-                      <p className="text-sm text-red-600">
-                        {field.state.meta.errors[0]}
-                      </p>
-                    )}
-                  </div>
+              <div className="space-y-2">
+                <Label htmlFor="email">Email</Label>
+                <Input id="email" type="email" {...form.register("email")} disabled={signUpMutation.status === "pending"} />
+                {form.formState.errors.email && (
+                  <p className="text-sm text-red-600">{String(form.formState.errors.email?.message)}</p>
                 )}
-              </form.Field>
+              </div>
 
-              <form.Field
-                name="password"
-                validators={{
-                  onChange: ({ value }) => {
-                    const result = signUpSchema.shape.password.safeParse(value);
-                    if (!result.success) {
-                      return result.error.issues[0]?.message;
-                    }
-                    return undefined;
-                  },
-                }}
-              >
-                {(field) => (
-                  <div className="space-y-2">
-                    <Label htmlFor="password">Password</Label>
-                    <Input
-                      id="password"
-                      type="password"
-                      placeholder="••••••••"
-                      value={field.state.value}
-                      onChange={(e) => field.handleChange(e.target.value)}
-                      onBlur={field.handleBlur}
-                      disabled={signUpMutation.isPending}
-                    />
-                    {field.state.meta.errors.length > 0 ? (
-                      <p className="text-sm text-red-600">
-                        {field.state.meta.errors[0]}
-                      </p>
-                    ) : (
-                      <p className="text-xs text-gray-500">
-                        Must be at least 8 characters long
-                      </p>
-                    )}
-                  </div>
+              <div className="space-y-2">
+                <Label htmlFor="password">Password</Label>
+                <Input id="password" type="password" {...form.register("password")} disabled={signUpMutation.status === "pending"} />
+                {form.formState.errors.password ? (
+                  <p className="text-sm text-red-600">{String(form.formState.errors.password?.message)}</p>
+                ) : (
+                  <p className="text-xs text-gray-500">Must be at least 8 characters long</p>
                 )}
-              </form.Field>
+              </div>
 
-              <form.Field
-                name="confirmPassword"
-                validators={{
-                  onChangeListenTo: ["password"],
-                  onChange: ({ value, fieldApi }) => {
-                    const password = fieldApi.form.getFieldValue("password");
-                    if (value.length === 0) {
-                      return "Please confirm your password";
-                    }
-                    if (value !== password) {
-                      return "Passwords do not match";
-                    }
-                    return undefined;
-                  },
-                }}
-              >
-                {(field) => (
-                  <div className="space-y-2">
-                    <Label htmlFor="confirm-password">Confirm Password</Label>
-                    <Input
-                      id="confirm-password"
-                      type="password"
-                      placeholder="••••••••"
-                      value={field.state.value}
-                      onChange={(e) => field.handleChange(e.target.value)}
-                      onBlur={field.handleBlur}
-                      disabled={signUpMutation.isPending}
-                    />
-                    {field.state.meta.errors.length > 0 && (
-                      <p className="text-sm text-red-600">
-                        {field.state.meta.errors[0]}
-                      </p>
-                    )}
-                  </div>
+              <div className="space-y-2">
+                <Label htmlFor="confirm-password">Confirm Password</Label>
+                <Input id="confirm-password" type="password" {...form.register("confirmPassword")} disabled={signUpMutation.status === "pending"} />
+                {form.formState.errors.confirmPassword && (
+                  <p className="text-sm text-red-600">{String(form.formState.errors.confirmPassword?.message)}</p>
                 )}
-              </form.Field>
+              </div>
 
-              <form.Subscribe
-                selector={(state) => [state.canSubmit, state.isSubmitting]}
-              >
-                {([canSubmit, isSubmitting]) => (
-                  <Button
-                    type="submit"
-                    className="w-full"
-                    disabled={
-                      !canSubmit || isSubmitting || signUpMutation.isPending
-                    }
-                  >
-                    {signUpMutation.isPending
-                      ? "Creating account..."
-                      : "Create Account"}
-                  </Button>
-                )}
-              </form.Subscribe>
+              <div>
+                <Button type="submit" className="w-full" disabled={!form.formState.isValid || form.formState.isSubmitting || signUpMutation.status === "pending"}>
+                  {signUpMutation.status === "pending" ? "Creating account..." : "Create Account"}
+                </Button>
+              </div>
             </form>
           )}
 

@@ -12,6 +12,11 @@
  *   - MONGODB_URI: MongoDB connection string
  */
 
+// Load local .env file early so any modules which validate
+// environment variables (like `config/env.ts`) see them.
+// This must come before other imports.
+import 'dotenv/config';
+
 import { pexelsClient } from '../lib/pexels-client';
 import { getDatabase } from '../lib/mongo';
 import { upsertVideos, transformPexelsVideo } from '../lib/db/queries/videos';

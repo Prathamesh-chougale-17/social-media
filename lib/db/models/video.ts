@@ -118,11 +118,19 @@ export async function createVideoIndexes(db: any) {
   const collection = db.collection(VIDEOS_COLLECTION);
   
   for (const index of VIDEO_INDEXES) {
-    await collection.createIndex(index.key, {
+    const opts: any = {
       name: index.name,
-      unique: 'unique' in index ? index.unique : undefined,
       background: index.background,
-    });
+    };
+
+    // Only set `unique` when explicitly provided on the index definition.
+    // Passing `unique: undefined` can be serialized to `null` by the driver
+    // and MongoDB rejects `unique: null`.
+    if ('unique' in index) {
+      opts.unique = index.unique;
+    }
+
+    await collection.createIndex(index.key, opts);
   }
   
   console.log('✅ Video indexes created successfully');

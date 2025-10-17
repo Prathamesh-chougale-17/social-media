@@ -108,7 +108,20 @@ export function InstagramShortsVideo({
   // Keyboard controls
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      // Ignore shortcuts when this video isn't active or visible
       if (!isActive || !inView) return;
+
+      // Ignore shortcuts while typing in any input/textarea/select or contenteditable
+      const active = document.activeElement as HTMLElement | null;
+      if (
+        active &&
+        (active.tagName === "INPUT" || active.tagName === "TEXTAREA" || active.tagName === "SELECT" || active.isContentEditable)
+      ) {
+        return;
+      }
+
+      // Also ignore when the comment drawer is open (user is writing a comment)
+      if (showComments) return;
 
       if (e.code === "Space") {
         e.preventDefault();

@@ -13,6 +13,13 @@ export const env = createEnv({
     GOOGLE_CLIENT_ID: z.string().min(1),
     GOOGLE_CLIENT_SECRET: z.string().min(1),
 
+    // Email
+    EMAIL_FROM_NAME: z.string().min(1),
+    EMAIL_HOST: z.string().min(1),
+    EMAIL_PORT: z.string().min(1),
+    EMAIL_USER: z.string().min(1),
+    EMAIL_PASSWORD: z.string().min(1),
+
     // Database
     MONGODB_URI: z.string().min(1),
 
@@ -43,5 +50,12 @@ export const env = createEnv({
 
     // Pexels API
     PEXELS_API_KEY: process.env.PEXELS_API_KEY,
+
+    // Email
+    EMAIL_FROM_NAME: process.env.EMAIL_FROM_NAME,
+    EMAIL_HOST: process.env.EMAIL_HOST,
+    EMAIL_PORT: process.env.EMAIL_PORT,
+    EMAIL_USER: process.env.EMAIL_USER,
+    EMAIL_PASSWORD: process.env.EMAIL_PASSWORD,
   },
 });

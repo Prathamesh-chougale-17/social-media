@@ -21,6 +21,23 @@ description: Generate a custom checklist for the current feature based on user r
 
 **Metaphor**: If your spec is code written in English, the checklist is its unit test suite. You're testing whether the requirements are well-written, complete, unambiguous, and ready for implementation - NOT whether the implementation works.
 
+## Social Media Platform Context
+
+This project follows a strict architecture defined in the constitution's 10 Core Principles:
+
+1. **Type Safety & DX** - Strict TypeScript, no `any` types
+2. **Server Components** - Next.js App Router + server components by default
+3. **tRPC-First Data** - All data via tRPC procedures, never direct MongoDB
+4. **URL State (Nuqs)** - Filters, pagination, search in URL parameters
+5. **TanStack Query** - Client-side caching + optimistic updates
+6. **Forms (RHF + Zod)** - Client validation + server-side schema check
+7. **Component Composition** - Shadcn/ui + Kibo UI, compose don't duplicate
+8. **MongoDB Schemas** - Typed collections, explicit indexes
+9. **Pexels Content** - API sync service, no direct client access
+10. **Auth in tRPC Context** - Every mutation checks `ctx.userId` first
+
+When generating checklists, ensure requirements validate adherence to these principles. Reference `.github/prompts/speckit.social-media-implementation.prompt.md` for patterns.
+
 ## User Input
 
 ```text
@@ -229,32 +246,43 @@ Sample items (testing the requirements, NOT the implementation):
 - "Is fallback behavior defined when images fail to load? [Edge Case, Gap]"
 - "Can 'prominent display' be objectively measured? [Measurability, Spec §FR-4]"
 
-**API Requirements Quality:** `api.md`
+**tRPC/API Requirements Quality:** `api.md`
 
-Sample items:
-- "Are error response formats specified for all failure scenarios? [Completeness]"
-- "Are rate limiting requirements quantified with specific thresholds? [Clarity]"
-- "Are authentication requirements consistent across all endpoints? [Consistency]"
-- "Are retry/timeout requirements defined for external dependencies? [Coverage, Gap]"
-- "Is versioning strategy documented in requirements? [Gap]"
+Sample items for social media platform:
+- "Are tRPC input schemas defined with Zod validation for all procedures? [Completeness]"
+- "Are authorization requirements specified for all mutation procedures? [Coverage, Principle X]"
+- "Is cursor-based pagination defined for infinite scroll queries? [Clarity]"
+- "Are error response formats consistent across all tRPC procedures? [Consistency]"
+- "Are optimistic update requirements specified for user interactions? [Gap, Principle V]"
+- "Is MongoDB direct access explicitly prohibited in requirements? [Principle III]"
+
+**Architecture Requirements Quality:** `architecture.md`
+
+Sample items for social media platform:
+- "Are server vs client component decisions documented with rationale? [Principle II, Clarity]"
+- "Is TypeScript strictness requirement specified (no `any` types)? [Principle I, Completeness]"
+- "Are URL state management requirements defined for filters/pagination? [Principle IV, Gap]"
+- "Is Pexels API access limited to sync service in requirements? [Principle IX, Coverage]"
+- "Are form validation requirements specified for both client and server? [Principle VI, Completeness]"
+- "Are component composition requirements defined (shadcn/ui + Kibo UI)? [Principle VII, Gap]"
 
 **Performance Requirements Quality:** `performance.md`
 
-Sample items:
-- "Are performance requirements quantified with specific metrics? [Clarity]"
-- "Are performance targets defined for all critical user journeys? [Coverage]"
-- "Are performance requirements under different load conditions specified? [Completeness]"
-- "Can performance requirements be objectively measured? [Measurability]"
-- "Are degradation requirements defined for high-load scenarios? [Edge Case, Gap]"
+Sample items for social media platform:
+- "Are infinite scroll performance requirements quantified with metrics? [Clarity]"
+- "Are image optimization requirements specified (Next.js Image)? [Completeness]"
+- "Are caching strategies defined for video metadata queries? [Gap, Principle V]"
+- "Are loading state requirements specified for async video loading? [Coverage]"
+- "Are performance degradation requirements defined for slow networks? [Edge Case, Gap]"
 
 **Security Requirements Quality:** `security.md`
 
-Sample items:
-- "Are authentication requirements specified for all protected resources? [Coverage]"
-- "Are data protection requirements defined for sensitive information? [Completeness]"
-- "Is the threat model documented and requirements aligned to it? [Traceability]"
-- "Are security requirements consistent with compliance obligations? [Consistency]"
-- "Are security failure/breach response requirements defined? [Gap, Exception Flow]"
+Sample items for social media platform:
+- "Are authentication requirements specified for all protected routes? [Coverage]"
+- "Are `ctx.userId` validation requirements documented for mutations? [Principle X, Completeness]"
+- "Is data access authorization defined at the tRPC context level? [Principle X, Clarity]"
+- "Are MongoDB connection security requirements specified? [Completeness]"
+- "Are rate limiting requirements defined for Pexels API sync? [Gap]"
 
 ## Anti-Examples: What NOT To Do
 

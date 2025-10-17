@@ -10,6 +10,38 @@ $ARGUMENTS
 
 You **MUST** consider the user input before proceeding (if not empty).
 
+## Social Media Platform Context
+
+This project follows a strict architecture defined in the constitution's 10 Core Principles:
+
+1. **Type Safety & DX** - Strict TypeScript, no `any` types
+2. **Server Components** - Next.js App Router + server components by default
+3. **tRPC-First Data** - All data via tRPC procedures, never direct MongoDB
+4. **URL State (Nuqs)** - Filters, pagination, search in URL parameters
+5. **TanStack Query** - Client-side caching + optimistic updates
+6. **Forms (RHF + Zod)** - Client validation + server-side schema check
+7. **Component Composition** - Shadcn/ui + Kibo UI, compose don't duplicate
+8. **MongoDB Schemas** - Typed collections, explicit indexes
+9. **Pexels Content** - API sync service, no direct client access
+10. **Auth in tRPC Context** - Every mutation checks `ctx.userId` first
+
+## Tech Stack Reference
+
+**Frontend**: Next.js 15.5.6 (App Router), TypeScript 5, Tailwind CSS 4
+**UI Components**: shadcn/ui + Kibo UI custom components
+**State Management**: TanStack Query 5.90.5, Nuqs (URL state)
+**Forms**: React Hook Form + Zod validation
+**RPC**: tRPC 11.6.0 with server components support
+**Database**: MongoDB with typed schemas
+**Animation**: Motion 12.23.24, Embla Carousel
+**Content**: Pexels API (videos)
+
+When creating technical plans, ensure all architecture decisions align with these principles. Reference:
+- `.specify/memory/constitution.md` for complete principles
+- `.github/prompts/speckit.social-media-implementation.prompt.md` for implementation patterns
+- `SPECIFICATION.md` for project architecture details
+- `QUICK_REFERENCE.md` for common patterns
+
 ## Outline
 
 1. **Setup**: Run `.specify/scripts/powershell/setup-plan.ps1 -Json` from repo root and parse JSON for FEATURE_SPEC, IMPL_PLAN, SPECS_DIR, BRANCH. For single quotes in args like "I'm Groot", use escape syntax: e.g 'I'\''m Groot' (or double-quote if possible: "I'm Groot").

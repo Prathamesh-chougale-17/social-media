@@ -10,6 +10,32 @@ $ARGUMENTS
 
 You **MUST** consider the user input before proceeding (if not empty).
 
+## Social Media Platform Context
+
+This project is a social media platform with the following tech stack:
+
+**Frontend**: Next.js 15.5.6 (App Router), TypeScript 5, Tailwind CSS 4
+**UI Components**: shadcn/ui + Kibo UI custom components
+**State Management**: TanStack Query 5.90.5, Nuqs (URL state)
+**Forms**: React Hook Form + Zod validation
+**RPC**: tRPC 11.6.0 with server components support
+**Database**: MongoDB with typed schemas
+**Content**: Pexels API for video content
+
+The project follows 10 Core Principles defined in `.specify/memory/constitution.md`:
+1. Type Safety & DX - Strict TypeScript, no `any` types
+2. Server Components - Next.js App Router + server components by default
+3. tRPC-First Data - All data via tRPC procedures, never direct MongoDB
+4. URL State (Nuqs) - Filters, pagination, search in URL parameters
+5. TanStack Query - Client-side caching + optimistic updates
+6. Forms (RHF + Zod) - Client validation + server-side schema check
+7. Component Composition - Shadcn/ui + Kibo UI, compose don't duplicate
+8. MongoDB Schemas - Typed collections, explicit indexes
+9. Pexels Content - API sync service, no direct client access
+10. Auth in tRPC Context - Every mutation checks `ctx.userId` first
+
+When writing specifications, ensure they align with these principles (technology-agnostic descriptions but compatible with the architecture).
+
 ## Outline
 
 The text the user typed after `/speckit.specify` in the triggering message **is** the feature description. Assume you always have it available in this conversation even if `$ARGUMENTS` appears literally below. Do not ask the user to repeat it unless they provided an empty command.

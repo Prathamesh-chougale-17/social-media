@@ -16,6 +16,31 @@ Goal: Detect and reduce ambiguity or missing decision points in the active featu
 
 Note: This clarification workflow is expected to run (and be completed) BEFORE invoking `/speckit.plan`. If the user explicitly states they are skipping clarification (e.g., exploratory spike), you may proceed, but must warn that downstream rework risk increases.
 
+## Social Media Platform Context
+
+This project follows a strict architecture defined in the constitution's 10 Core Principles:
+
+1. **Type Safety & DX** - Strict TypeScript, no `any` types
+2. **Server Components** - Next.js App Router + server components by default
+3. **tRPC-First Data** - All data via tRPC procedures, never direct MongoDB
+4. **URL State (Nuqs)** - Filters, pagination, search in URL parameters
+5. **TanStack Query** - Client-side caching + optimistic updates
+6. **Forms (RHF + Zod)** - Client validation + server-side schema check
+7. **Component Composition** - Shadcn/ui + Kibo UI, compose don't duplicate
+8. **MongoDB Schemas** - Typed collections, explicit indexes
+9. **Pexels Content** - API sync service, no direct client access
+10. **Auth in tRPC Context** - Every mutation checks `ctx.userId` first
+
+When identifying ambiguities and generating clarification questions, consider:
+- Whether requirements specify tRPC procedures vs direct MongoDB access (Principle III)
+- Whether server vs client component decisions are documented (Principle II)
+- Whether URL state management is defined for filters/pagination (Principle IV)
+- Whether authorization checks are specified at tRPC context level (Principle X)
+- Whether form validation is specified for both client and server (Principle VI)
+- Whether MongoDB schemas and indexes are defined (Principle VIII)
+
+Reference `.specify/memory/constitution.md` for complete principles and `QUICK_REFERENCE.md` for architecture patterns.
+
 Execution steps:
 
 1. Run `.specify/scripts/powershell/check-prerequisites.ps1 -Json -PathsOnly` from repo root **once** (combined `--json --paths-only` mode / `-Json -PathsOnly`). Parse minimal JSON payload fields:

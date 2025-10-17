@@ -20,6 +20,23 @@ Identify inconsistencies, duplications, ambiguities, and underspecified items ac
 
 **Constitution Authority**: The project constitution (`.specify/memory/constitution.md`) is **non-negotiable** within this analysis scope. Constitution conflicts are automatically CRITICAL and require adjustment of the spec, plan, or tasks—not dilution, reinterpretation, or silent ignoring of the principle. If a principle itself needs to change, that must occur in a separate, explicit constitution update outside `/analyze`.
 
+## Social Media Platform Context
+
+This project follows a strict architecture defined in the constitution's 10 Core Principles:
+
+1. **Type Safety & DX** - Strict TypeScript, no `any` types
+2. **Server Components** - Next.js App Router + server components by default
+3. **tRPC-First Data** - All data via tRPC procedures, never direct MongoDB
+4. **URL State (Nuqs)** - Filters, pagination, search in URL parameters
+5. **TanStack Query** - Client-side caching + optimistic updates
+6. **Forms (RHF + Zod)** - Client validation + server-side schema check
+7. **Component Composition** - Shadcn/ui + Kibo UI, compose don't duplicate
+8. **MongoDB Schemas** - Typed collections, explicit indexes
+9. **Pexels Content** - API sync service, no direct client access
+10. **Auth in tRPC Context** - Every mutation checks `ctx.userId` first
+
+Analysis must verify adherence to these principles. Reference `.github/prompts/speckit.social-media-implementation.prompt.md` for implementation patterns and `QUICK_REFERENCE.md` for architecture patterns.
+
 ## Execution Steps
 
 ### 1. Initialize Analysis Context
@@ -95,8 +112,20 @@ Focus on high-signal findings. Limit to 50 findings total; aggregate remainder i
 
 #### D. Constitution Alignment
 
-- Any requirement or plan element conflicting with a MUST principle
-- Missing mandated sections or quality gates from constitution
+**Critical checks against the 10 Core Principles:**
+
+- **Principle I (Type Safety)**: Any use of `any` type, missing type definitions, or non-strict TypeScript
+- **Principle II (Server Components)**: Client components used where server would suffice, missing `'use client'` directives
+- **Principle III (tRPC-First)**: Direct MongoDB access from components, fetch/axios in place of tRPC
+- **Principle IV (Nuqs URL State)**: Local state (`useState`) for filters/pagination instead of URL params
+- **Principle V (TanStack Query)**: Missing optimistic updates, improper cache invalidation
+- **Principle VI (Forms)**: Forms without Zod validation, missing server-side schema checks
+- **Principle VII (Component Composition)**: Duplicated UI code instead of composing shadcn/ui or Kibo UI
+- **Principle VIII (MongoDB)**: Missing indexes, untyped collections, improper schema validation
+- **Principle IX (Pexels)**: Direct Pexels API access from client, missing sync service
+- **Principle X (Auth)**: Mutations without `ctx.userId` check, authorization in components instead of tRPC
+
+Flag any requirement or plan element conflicting with a MUST principle. Missing mandated sections or quality gates from constitution.
 
 #### E. Coverage Gaps
 

@@ -127,7 +127,7 @@ export const Reel = ({
       setProgress(0); // Reset progress immediately to prevent showing 100% during transition
       setCurrentIndexState(index);
     },
-    [setCurrentIndexState]
+    [setCurrentIndexState],
   );
 
   const currentItem = data[currentIndex];
@@ -157,7 +157,7 @@ export const Reel = ({
         className={cn(
           "relative isolate h-full w-auto overflow-hidden bg-black",
           "aspect-[9/16]",
-          className
+          className,
         )}
         {...props}
       />
@@ -450,7 +450,7 @@ export type ReelProgressProps = HTMLAttributes<HTMLDivElement> & {
     item: ReelItem,
     index: number,
     isActive: boolean,
-    progress: number
+    progress: number,
   ) => ReactNode;
 };
 
@@ -478,7 +478,7 @@ export const ReelProgress = ({
       <div
         className={cn(
           "absolute top-0 right-0 left-0 z-40 flex gap-1 p-2",
-          className
+          className,
         )}
         {...props}
       >
@@ -488,7 +488,7 @@ export const ReelProgress = ({
               item,
               index,
               index === currentIndex,
-              calculateProgress(index)
+              calculateProgress(index),
             )}
           </div>
         ))}
@@ -500,7 +500,7 @@ export const ReelProgress = ({
     <div
       className={cn(
         "absolute top-0 right-0 left-0 z-40 flex gap-1 p-2",
-        className
+        className,
       )}
       {...props}
     >
@@ -522,7 +522,7 @@ export const ReelControls = ({ className, ...props }: ReelControlsProps) => (
     className={cn(
       "absolute right-0 bottom-0 left-0 z-20 flex items-center justify-between p-4",
       "bg-gradient-to-t from-black/60 to-transparent",
-      className
+      className,
     )}
     {...props}
   />
@@ -551,7 +551,7 @@ export const ReelPreviousButton = ({
       aria-label="Previous"
       className={cn(
         "rounded-full text-white hover:bg-white/10 hover:text-white",
-        className
+        className,
       )}
       disabled={currentIndex === 0}
       onClick={handlePrevious}
@@ -590,7 +590,7 @@ export const ReelNextButton = ({
       aria-label="Next"
       className={cn(
         "rounded-full text-white hover:bg-white/10 hover:text-white",
-        className
+        className,
       )}
       disabled={currentIndex === totalItems - 1}
       onClick={handleNext}
@@ -618,7 +618,7 @@ export const ReelPlayButton = ({
       aria-label={isPlaying ? "Pause" : "Play"}
       className={cn(
         "rounded-full text-white hover:bg-white/10 hover:text-white",
-        className
+        className,
       )}
       onClick={() => setIsPlaying(!isPlaying)}
       size="icon"
@@ -649,7 +649,7 @@ export const ReelMuteButton = ({
       aria-label={isMuted ? "Unmute" : "Mute"}
       className={cn(
         "rounded-full text-white hover:bg-white/10 hover:text-white",
-        className
+        className,
       )}
       onClick={() => setIsMuted(!isMuted)}
       size="icon"
@@ -725,7 +725,7 @@ export const ReelHeader = ({ className, ...props }: ReelHeaderProps) => (
     className={cn(
       "absolute top-0 right-0 left-0 z-20 p-4 pt-6",
       "bg-gradient-to-b from-black/60 to-transparent",
-      className
+      className,
     )}
     {...props}
   />
@@ -738,7 +738,7 @@ export const ReelFooter = ({ className, ...props }: ReelFooterProps) => (
     className={cn(
       "absolute right-0 bottom-0 left-0 z-20 p-4",
       "bg-gradient-to-t from-black/60 to-transparent",
-      className
+      className,
     )}
     {...props}
   />

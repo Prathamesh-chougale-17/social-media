@@ -48,7 +48,7 @@ export const Story = ({ className, ...props }: StoryProps) => (
         "cursor-pointer transition-all duration-200",
         "hover:scale-[1.02] hover:shadow-lg",
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
-        className
+        className,
       )}
       role="button"
       tabIndex={0}
@@ -111,7 +111,7 @@ export const StoryVideo = ({ className, ...props }: StoryVideoProps) => {
         "absolute inset-0 size-full object-cover",
         "transition-opacity duration-200",
         "group-hover:opacity-90",
-        className
+        className,
       )}
       loop
       muted
@@ -139,7 +139,7 @@ export const StoryImage = ({ className, alt, ...props }: StoryImageProps) => (
       "absolute inset-0 h-full w-full object-cover",
       "transition-opacity duration-200",
       "group-hover:opacity-90",
-      className
+      className,
     )}
     {...props}
   />
@@ -156,7 +156,7 @@ export const StoryAuthor = ({
     className={cn(
       "absolute right-0 bottom-0 left-0 z-10",
       "p-3 text-white",
-      className
+      className,
     )}
     {...props}
   >
@@ -201,7 +201,7 @@ export const StoryTitle = ({ className, ...props }: StoryTitleProps) => (
     className={cn(
       "absolute top-0 right-0 left-0 z-10",
       "p-3 text-white",
-      className
+      className,
     )}
     {...props}
   />
@@ -224,7 +224,7 @@ export const StoryOverlay = ({
       className={cn(
         "absolute right-0 left-0 h-10 from-black/20 to-transparent",
         positionClasses,
-        className
+        className,
       )}
       {...props}
     />

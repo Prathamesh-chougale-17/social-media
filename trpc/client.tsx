@@ -3,12 +3,12 @@
 import type { QueryClient } from "@tanstack/react-query";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { httpBatchLink } from "@trpc/client";
-import { createTRPCReact } from "@trpc/react-query";
+import { trpc as sharedTrpc } from "./shared";
 import { useState } from "react";
 import SuperJSON from "superjson";
 import { makeQueryClient } from "./query-client";
 import type { AppRouter } from "./routers/_app";
-export const trpc = createTRPCReact<AppRouter>();
+export const trpc = sharedTrpc;
 let clientQueryClientSingleton: QueryClient;
 function getQueryClient() {
   if (typeof window === "undefined") {

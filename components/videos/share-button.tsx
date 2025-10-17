@@ -36,7 +36,7 @@ export function ShareButton({ videoId, videoTitle }: ShareButtonProps) {
 
   const shareNative = async (e: React.MouseEvent) => {
     e.stopPropagation();
-    if (typeof navigator !== "undefined" && navigator.share) {
+    if (typeof navigator !== "undefined" && typeof navigator.share === "function") {
       try {
         await navigator.share({
           title: videoTitle || "Check out this video",
@@ -97,7 +97,7 @@ export function ShareButton({ videoId, videoTitle }: ShareButtonProps) {
           >
             <div className="space-y-1">
               {/* Native Share */}
-              {typeof navigator !== "undefined" && navigator.share && (
+              {typeof navigator !== "undefined" && typeof navigator.share === "function" && (
                 <motion.button
                   whileHover={{ x: 4 }}
                   whileTap={{ scale: 0.95 }}

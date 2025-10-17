@@ -7,6 +7,7 @@
 
 import { router } from "../init";
 import { videosRouter } from "./videos";
+import { interactionsRouter } from "./interactions";
 
 /**
  * App Router
@@ -16,6 +17,7 @@ import { videosRouter } from "./videos";
  */
 export const appRouter = router({
   videos: videosRouter,
+  interactions: interactionsRouter,
   // Add more routers here:
   // interactions: interactionsRouter,
   // users: usersRouter,

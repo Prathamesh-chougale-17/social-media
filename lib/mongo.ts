@@ -32,3 +32,17 @@ if (process.env.NODE_ENV === "development") {
 // Export a module-scoped MongoClient. By doing this in a
 // separate module, the client can be shared across functions.
 export default client;
+
+/**
+ * Get MongoDB database instance
+ * 
+ * Connects to MongoDB and returns the database instance.
+ * Database name is extracted from MONGODB_URI.
+ */
+export async function getDatabase() {
+  await client.connect();
+  // Extract database name from URI or use default
+  const dbName = uri.split('/').pop()?.split('?')[0] || 'social-media';
+  return client.db(dbName);
+}
+

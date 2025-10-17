@@ -30,10 +30,7 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <QueryProvider>
-          <NuqsAdapter>
-            <div className="container mx-auto px-4 py-8">
-              <div className="mx-auto max-w-7xl">{children}</div>
-            </div>
+          <NuqsAdapter>{children}
           </NuqsAdapter>
         </QueryProvider>
       </body>

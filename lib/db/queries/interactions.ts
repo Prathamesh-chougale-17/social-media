@@ -2,13 +2,30 @@ import { getDatabase } from "@/lib/mongo";
 import { ObjectId } from "mongodb";
 import { Comment, Like, COMMENTS_COLLECTION, LIKES_COLLECTION } from "@/lib/db/models/interactions";
 
-export async function createComment(videoId: string, userId: string, content: string, authorName?: string) {
+export async function createComment(videoId: string, userId: string, content: string, authorName?: string, userImage?: string | null) {
   const db = await getDatabase();
+  
+  // Use the provided authorName and userImage from the session
+  // If not provided, try to fetch from user collection (fallback for old sessions)
+  let userName = authorName;
+  let avatar = userImage;
+  
+  if (!userName) {
+    // Fallback: try to fetch user by session userId
+    const user = await db.collection("user").findOne({ id: userId });
+    if (user) {
+      userName = user.name;
+      avatar = user.image;
+    }
+  }
+  
   const doc: any = {
     videoId,
     userId,
     content,
-    authorName,
+    authorName: userName || "Anonymous",
+    userName: userName || "Anonymous",
+    userImage: avatar || null,
     createdAt: new Date(),
   };
   const res = await db.collection(COMMENTS_COLLECTION).insertOne(doc);
@@ -22,40 +39,17 @@ export async function getCommentsByVideo(videoId: string, limit = 20, beforeId?:
     query._id = { $lt: new ObjectId(beforeId) };
   }
   
-  // Aggregate to join with user data from better-auth
+  // Fetch comments with user data already stored
   const comments = await db
     .collection(COMMENTS_COLLECTION)
-    .aggregate([
-      { $match: query },
-      { $sort: { _id: -1 } },
-      { $limit: limit },
-      {
-        $lookup: {
-          from: "user", // better-auth stores users in 'user' collection
-          localField: "userId",
-          foreignField: "id",
-          as: "userInfo",
-        },
-      },
-      {
-        $project: {
-          _id: 1,
-          videoId: 1,
-          userId: 1,
-          content: 1,
-          authorName: 1,
-          createdAt: 1,
-          userName: { $arrayElemAt: ["$userInfo.name", 0] },
-          userImage: { $arrayElemAt: ["$userInfo.image", 0] },
-        },
-      },
-    ])
+    .find(query)
+    .sort({ _id: -1 })
+    .limit(limit)
     .toArray();
 
   return comments.map((d: any) => ({ 
     ...d, 
     _id: d._id.toHexString(),
-    // Use userName from joined data if available, fallback to authorName
     userName: d.userName || d.authorName || "Anonymous",
     userImage: d.userImage || null,
   }));
@@ -96,5 +90,40 @@ export async function getLikesCount(videoId: string) {
 export async function hasUserLiked(videoId: string, userId: string) {
   const db = await getDatabase();
   const doc = await db.collection(LIKES_COLLECTION).findOne({ videoId, userId }, { projection: { _id: 1 } });
+  return !!doc;
+}
+
+export async function getCommentsCount(videoId: string) {
+  const db = await getDatabase();
+  return db.collection(COMMENTS_COLLECTION).countDocuments({ videoId });
+}
+
+// Bookmarks collection
+const BOOKMARKS_COLLECTION = "bookmarks";
+
+export async function createBookmark(videoId: string, userId: string) {
+  const db = await getDatabase();
+  const doc: any = { videoId, userId, createdAt: new Date() };
+  try {
+    const res = await db.collection(BOOKMARKS_COLLECTION).insertOne(doc);
+    return { ...doc, _id: res.insertedId.toHexString() };
+  } catch (err: any) {
+    // Duplicate key => already bookmarked
+    if (err?.code === 11000) {
+      return null;
+    }
+    throw err;
+  }
+}
+
+export async function removeBookmark(videoId: string, userId: string) {
+  const db = await getDatabase();
+  const res = await db.collection(BOOKMARKS_COLLECTION).deleteOne({ videoId, userId });
+  return res.deletedCount === 1;
+}
+
+export async function hasUserBookmarked(videoId: string, userId: string) {
+  const db = await getDatabase();
+  const doc = await db.collection(BOOKMARKS_COLLECTION).findOne({ videoId, userId }, { projection: { _id: 1 } });
   return !!doc;
 }

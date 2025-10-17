@@ -25,7 +25,7 @@ if (!process.env.GOOGLE_CLIENT_SECRET) {
 }
 
 export const auth = betterAuth({
-  database: mongodbAdapter(client.db("oauth"), {
+  database: mongodbAdapter(client.db("social-media"), {
     client,
   }),
   emailAndPassword: {

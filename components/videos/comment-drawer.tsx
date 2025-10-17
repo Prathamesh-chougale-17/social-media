@@ -4,9 +4,10 @@ import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { X, Send, Heart } from "lucide-react";
 import { trpc } from "@/trpc/shared";
-import { useSession } from "@/lib/auth-client";
+import { authClient } from "@/lib/auth-client";
 import { cn } from "@/lib/utils";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { toast } from "sonner";
 
 type CommentDrawerProps = {
   videoId: string;
@@ -20,7 +21,7 @@ export function CommentDrawer({
   onOpenChange,
 }: CommentDrawerProps) {
   const [content, setContent] = useState("");
-  const { data: session } = useSession();
+  const { data: session, isPending } = authClient.useSession();
   const utils = trpc.useContext();
 
   const { data: comments, isLoading } = trpc.interactions.getComments.useQuery(
@@ -32,12 +33,24 @@ export function CommentDrawer({
     onSuccess() {
       setContent("");
       utils.interactions.getComments.invalidate({ videoId });
+      utils.interactions.commentsCount.invalidate({ videoId });
+      toast.success("Comment posted!");
+    },
+    onError(error) {
+      toast.error("Failed to post comment. Please try again.");
     },
   });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!content.trim() || !session?.user) return;
+    if (!content.trim()) {
+      toast.error("Comment cannot be empty");
+      return;
+    }
+    if (!session?.user) {
+      toast.error("Please sign in to comment");
+      return;
+    }
     createComment.mutate({ videoId, content: content.trim() });
   };
 

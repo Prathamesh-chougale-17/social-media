@@ -23,13 +23,13 @@ export async function middleware(request: NextRequest) {
   }
   
   // Allow auth routes
-  if (pathname.startsWith("/sign-in") || pathname.startsWith("/sign-up")) {
+  if (pathname.startsWith("/signin") || pathname.startsWith("/signup")) {
     return NextResponse.next();
   }
   
   // Redirect to sign-in if no session cookie for protected routes
   if (!sessionCookie) {
-    return NextResponse.redirect(new URL("/sign-in", request.url));
+    return NextResponse.redirect(new URL("/signin", request.url));
   }
   
   return NextResponse.next();

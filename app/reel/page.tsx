@@ -1,5 +1,6 @@
 import { HydrateClient, trpc } from "@/trpc/server";
 import FeedScroll from "@/components/reel/feed-scroll";
+import { SessionDebug } from "@/components/debug/session-debug";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {

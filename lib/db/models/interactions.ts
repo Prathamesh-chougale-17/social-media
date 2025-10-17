@@ -38,9 +38,28 @@ export const LIKE_INDEXES = [
   { name: "like_unique_user_video", key: { videoId: 1, userId: 1 }, unique: true, background: true },
 ] as const;
 
+export const BookmarkSchema = z.object({
+  _id: z.string().optional(),
+  videoId: z.string(),
+  userId: z.string(),
+  createdAt: z.date().optional(),
+});
+
+export type Bookmark = z.infer<typeof BookmarkSchema>;
+
+export const BOOKMARKS_COLLECTION = "bookmarks";
+
+export const BOOKMARK_INDEXES = [
+  { name: "bookmark_video_index", key: { videoId: 1 }, background: true },
+  { name: "bookmark_user_index", key: { userId: 1 }, background: true },
+  // Prevent duplicate bookmarks per user+video
+  { name: "bookmark_unique_user_video", key: { videoId: 1, userId: 1 }, unique: true, background: true },
+] as const;
+
 export async function createInteractionIndexes(db: any) {
   const comments = db.collection(COMMENTS_COLLECTION);
   const likes = db.collection(LIKES_COLLECTION);
+  const bookmarks = db.collection(BOOKMARKS_COLLECTION);
 
   for (const idx of COMMENT_INDEXES) {
     const opts: any = { name: idx.name, background: idx.background };
@@ -51,6 +70,12 @@ export async function createInteractionIndexes(db: any) {
     const opts: any = { name: idx.name, background: idx.background };
     if ("unique" in idx) opts.unique = (idx as any).unique;
     await likes.createIndex(idx.key, opts);
+  }
+
+  for (const idx of BOOKMARK_INDEXES) {
+    const opts: any = { name: idx.name, background: idx.background };
+    if ("unique" in idx) opts.unique = (idx as any).unique;
+    await bookmarks.createIndex(idx.key, opts);
   }
 
   console.log("✅ Interaction indexes created successfully");

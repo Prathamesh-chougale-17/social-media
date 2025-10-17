@@ -3,13 +3,16 @@ import React, { useState } from "react";
 import { motion } from "motion/react";
 import { Heart } from "lucide-react";
 import { trpc } from "@/trpc/shared";
-import { useSession } from "@/lib/auth-client";
+import { authClient } from "@/lib/auth-client";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 
 export function LikeButton({ videoId }: { videoId: string }) {
+  const router = useRouter();
   const utils = trpc.useContext();
   const { data: likes } = trpc.interactions.likesCount.useQuery({ videoId });
-  const { data: session } = useSession();
+  const { data: session, isPending } = authClient.useSession();
   const userId = session?.user?.id;
   const [justLiked, setJustLiked] = useState(false);
 
@@ -18,12 +21,18 @@ export function LikeButton({ videoId }: { videoId: string }) {
       utils.interactions.likesCount.invalidate({ videoId });
       utils.interactions.hasLiked.invalidate({ videoId, userId });
     },
+    onError(error) {
+      toast.error("Failed to like video. Please try again.");
+    },
   });
 
   const unlikeMutation = trpc.interactions.unlike.useMutation({
     onSuccess() {
       utils.interactions.likesCount.invalidate({ videoId });
       utils.interactions.hasLiked.invalidate({ videoId, userId });
+    },
+    onError(error) {
+      toast.error("Failed to unlike video. Please try again.");
     },
   });
 
@@ -38,7 +47,11 @@ export function LikeButton({ videoId }: { videoId: string }) {
     e.stopPropagation();
     
     if (!userId) {
-      // Optionally open sign-in modal; for now, just return
+      toast.error("Please sign in to like videos");
+      // Redirect to sign-in page
+      setTimeout(() => {
+        router.push("/signin");
+      }, 1000);
       return;
     }
     

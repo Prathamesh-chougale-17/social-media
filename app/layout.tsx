@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
+import { Toaster } from "sonner";
 import "./globals.css";
 import { QueryProvider } from "@/components/providers/query-provider";
 
@@ -33,6 +34,7 @@ export default function RootLayout({
           <NuqsAdapter>{children}
           </NuqsAdapter>
         </QueryProvider>
+        <Toaster position="top-center" richColors />
       </body>
     </html>
   );

@@ -9,7 +9,10 @@ import { initTRPC, TRPCError } from "@trpc/server";
 import SuperJSON from "superjson";
 import { ZodError } from "zod";
 import { getSessionCookie } from "better-auth/cookies";
-
+import { getDatabase } from "@/lib/mongo";
+import { ObjectId } from "mongodb";
+import { auth } from "../lib/auth"; // path to your Better Auth server instance
+import { headers } from "next/headers";
 /**
  * tRPC Context
  *
@@ -19,6 +22,7 @@ import { getSessionCookie } from "better-auth/cookies";
 export interface Context {
   userId?: string; // User ID from auth session (if authenticated)
   userName?: string; // Display name from auth session (if available)
+  userImage?: string | null; // User profile image from auth session (if available)
   // Add more context fields as needed (e.g., session, headers)
 }
 
@@ -30,37 +34,63 @@ export interface Context {
  */
 export async function createTRPCContext(opts?: { req?: Request } ) : Promise<Context> {
   // Attempt to read Better Auth session cookie from the incoming request.
-  // The helper `getSessionCookie` is defensive and may accept a Fetch `Request` or
-  // Next.js `NextRequest`. We try a few common shapes for the session to extract
-  // a canonical `userId` value.
   try {
     const req = opts?.req as any | undefined;
-    let session: any = getSessionCookie(req);
+    
+    if (!req) {
+      return {};
+    }
 
-    // `getSessionCookie` may return a JSON string in some versions; try to parse
-    if (typeof session === "string") {
+
+    const session = await auth.api.getSession({
+      headers: await headers() // you need to pass the headers object.
+    });
+
+  const userId = session ? session.user?.id : undefined;
+  let userName = session ? session.user?.name : undefined;
+  let userImage = session ? session.user?.image : null;
+
+    // Development-only logging was removed after verification.
+
+    // Fallback: if session did not include name/image, try to fetch from DB
+    if ((!userName || !userImage) && userId) {
       try {
-        session = JSON.parse(session);
+        const db = await getDatabase();
+        let userDoc: any = null;
+
+        // If userId looks like an ObjectId, try querying by _id
+        if (/^[0-9a-fA-F]{24}$/.test(userId)) {
+          userDoc = await db.collection("user").findOne({ _id: new ObjectId(userId) });
+        }
+
+        // If not found by _id, try querying by id (better-auth's id)
+        if (!userDoc) {
+          userDoc = await db.collection("user").findOne({ id: userId });
+        }
+
+        // If still not found and userId looks URL-encoded, try decoding and lookup
+        if (!userDoc && typeof userId === "string" && userId.includes("%")) {
+          try {
+            const decoded = decodeURIComponent(userId);
+            userDoc = await db.collection("user").findOne({ id: decoded });
+              // found by decoded id (no-op)
+          } catch (e) {
+            // ignore decode errors
+          }
+        }
+
+        if (userDoc) {
+          userName = userName || userDoc.name;
+          userImage = userImage || userDoc.image || null;
+        }
       } catch (e) {
-        // leave as string if parsing fails
+        // swallow fallback lookup errors in production and dev (they're non-fatal)
       }
     }
 
-    // Helper to safely read nested properties
-    const getUserId = (s: any) => {
-      if (!s) return undefined;
-      if (typeof s === "string") return s;
-      return s?.user?.id ?? s?.userId ?? s?.sub ?? s?.id ?? undefined;
-    };
-
-    const userId = getUserId(session);
-    // Try to extract a human-friendly name from the session if available
-    const userName =
-      (typeof session === "object" && (session?.user?.name ?? session?.name)) ||
-      undefined;
-
-    return { userId, userName };
+    return { userId, userName, userImage };
   } catch (err) {
+    console.error("Error creating tRPC context:", err);
     return {};
   }
 }

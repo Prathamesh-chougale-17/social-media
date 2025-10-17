@@ -16,6 +16,9 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { LikeButton } from "@/components/videos/like-button";
+import { CommentButton } from "@/components/videos/comment-button";
+import { BookmarkButton } from "@/components/videos/bookmark-button";
+import { ShareButton } from "@/components/videos/share-button";
 import { CommentDrawer } from "@/components/videos/comment-drawer";
 
 type Video = {
@@ -265,48 +268,19 @@ export function InstagramShortsVideo({
               {/* Right side - Action buttons */}
               <div className="flex flex-col gap-6 items-center">
                 {/* Like button */}
-                <div className="flex flex-col items-center gap-1">
-                  <LikeButton videoId={video.id} />
-                </div>
+                <LikeButton videoId={video.id} />
 
                 {/* Comments */}
-                <motion.button
-                  whileTap={{ scale: 0.9 }}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setShowComments(true);
-                  }}
-                  className="flex flex-col items-center gap-1"
-                >
-                  <div className="w-12 h-12 bg-black/30 backdrop-blur-sm rounded-full flex items-center justify-center hover:bg-black/50 transition-colors">
-                    <MessageCircle className="w-7 h-7 text-white" />
-                  </div>
-                  <span className="text-white text-xs font-semibold drop-shadow-lg">
-                    123
-                  </span>
-                </motion.button>
+                <CommentButton 
+                  videoId={video.id} 
+                  onClick={() => setShowComments(true)} 
+                />
 
                 {/* Share */}
-                <motion.button
-                  whileTap={{ scale: 0.9 }}
-                  onClick={(e) => e.stopPropagation()}
-                  className="flex flex-col items-center gap-1"
-                >
-                  <div className="w-12 h-12 bg-black/30 backdrop-blur-sm rounded-full flex items-center justify-center hover:bg-black/50 transition-colors">
-                    <Send className="w-7 h-7 text-white" />
-                  </div>
-                </motion.button>
+                <ShareButton videoId={video.id} videoTitle={video.title} />
 
                 {/* Bookmark */}
-                <motion.button
-                  whileTap={{ scale: 0.9 }}
-                  onClick={(e) => e.stopPropagation()}
-                  className="flex flex-col items-center gap-1"
-                >
-                  <div className="w-12 h-12 bg-black/30 backdrop-blur-sm rounded-full flex items-center justify-center hover:bg-black/50 transition-colors">
-                    <Bookmark className="w-7 h-7 text-white" />
-                  </div>
-                </motion.button>
+                <BookmarkButton videoId={video.id} />
 
                 {/* Mute toggle */}
                 <motion.button
@@ -317,12 +291,13 @@ export function InstagramShortsVideo({
                   }}
                   className="flex flex-col items-center gap-1 mt-2"
                 >
-                  <div className="w-12 h-12 bg-black/30 backdrop-blur-sm rounded-full flex items-center justify-center hover:bg-black/50 transition-colors">
+                  <div className="w-12 h-12 bg-black/30 backdrop-blur-sm rounded-full flex items-center justify-center hover:bg-black/50 transition-colors relative group">
                     {muted ? (
                       <VolumeX className="w-7 h-7 text-white" />
                     ) : (
                       <Volume2 className="w-7 h-7 text-white" />
                     )}
+                    <div className="absolute inset-0 rounded-full bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity" />
                   </div>
                 </motion.button>
               </div>
